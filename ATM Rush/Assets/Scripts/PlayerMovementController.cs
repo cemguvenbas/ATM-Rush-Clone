@@ -4,14 +4,41 @@ using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
 {
-    [SerializeField] private float movementSpeed;
-    [SerializeField] private float horizontalSpeed;
+    public float swipeSpeed;
+    public float moveSpeed;
 
-    private float horizontalInput;
+    private Camera cam;
 
-    private void FixedUpdate()
+    private void Start()
     {
-        horizontalInput = Input.GetAxis("Horizontal");
-        transform.Translate(new Vector3(horizontalInput * horizontalSpeed * Time.deltaTime,0,movementSpeed * Time.deltaTime));
+        cam = Camera.main;
+    }
+
+    private void Update()
+    {
+        transform.position += Vector3.forward * moveSpeed * Time.deltaTime;
+        if (Input.GetButton("Fire1"))
+        {
+            Move();
+        }
+    }
+
+    private void Move()
+    {
+        Vector3 mousePos = Input.mousePosition;
+        mousePos.z = cam.transform.localPosition.z;
+
+        Ray ray = cam.ScreenPointToRay(mousePos);
+
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        {
+            GameObject firstCube = ATMRush.instance.cubes[0];
+            Vector3 hitVec = hit.point;
+            hitVec.y = firstCube.transform.localPosition.y;
+            hitVec.z = firstCube.transform.localPosition.z;
+
+            firstCube.transform.localPosition = Vector3.MoveTowards(firstCube.transform.localPosition, hitVec, Time.deltaTime * swipeSpeed);
+        }
     }
 }
